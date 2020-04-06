@@ -15,6 +15,7 @@
         "security/ir.model.access.csv",
 
         "data/ir_sequence_data.xml",
+        "data/department_data.xml",
 
         "views/res_users_view.xml",
         "views/res_company_view.xml",
