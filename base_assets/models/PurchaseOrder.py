@@ -2,8 +2,9 @@
 from odoo import api, fields, models, _
 from odoo.tools.float_utils import float_round
 from odoo.osv import expression
+import logging
 
-
+_logger = logging.getLogger(__name__)
 order_type_selection = [("normal", "Normal"), ("asset", "Asset")]
 
 
@@ -12,7 +13,7 @@ class PurchaseOrder(models.Model):
     _inherit = ["purchase.order", "oa.base"]
 
     order_type = fields.Selection(order_type_selection, string="Normal/Asset",
-        default="normal", required=True)
+                                  default="normal", required=True, index=True)
 
     @api.model
     def search(self, args, offset=0, limit=None, order=None, count=False):
@@ -41,20 +42,21 @@ class PurchaseOrder(models.Model):
         for order in self:
             # 资产的采购数量必须是整型，取整，拆解明细行
             for line in order.order_line.filtered(lambda ol:
-                ol.product_id.is_asset and ol.product_id.asset_category_id):
+                                                  ol.product_id.is_asset and ol.product_id.asset_category_id):
                 product_qty = float_round(line.product_uom_qty, precision_rounding=1, rounding_method="DOWN")
                 line.write({"product_qty": 1})
-                while(product_qty > 1):
+                while (product_qty > 1):
                     line = line.copy({"product_qty": 1})
                     product_qty -= 1
 
             order.order_line.filtered(lambda ol:
-                ol.product_id.is_asset and ol.product_id.asset_category_id).asset_create()
+                                      ol.product_id.is_asset and ol.product_id.asset_category_id).asset_create()
         res = super(PurchaseOrder, self).button_confirm()
 
         # 创建资产调拨单
         for purchase_order in self.filtered(lambda s: s.order_type == "asset"):
-            asset_picking_order = self.env["asset.picking.order"].create(purchase_order._create_asset_picking_order_val())
+            asset_picking_order = self.env["asset.picking.order"].create(
+                purchase_order._create_asset_picking_order_val())
             move_ids = purchase_order.mapped("picking_ids").mapped("move_lines")
             if move_ids:
                 move_ids.write({"asset_picking_order_id": asset_picking_order.id})
@@ -94,12 +96,13 @@ class PurchaseOrder(models.Model):
     def test_cancel(self):
         print ("cancel")
 
+
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
     asset_id = fields.Many2one("res.asset", "Asset", copy=False)
     order_type = fields.Selection(order_type_selection, "Purchase Order Type", relation="order_id.order_type",
-        store=True)
+                                  store=True, index=True)
 
     @api.one
     def asset_create(self):

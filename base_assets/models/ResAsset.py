@@ -11,25 +11,25 @@ class ResAsset(models.Model):
 
     code = fields.Char("Code", required=True, copy=False)
     name = fields.Char("Name", required=True, copy=False,)
-    sn = fields.Char("SN", copy=False,)
-    product_id = fields.Many2one("product.product", "Product")
+    sn = fields.Char("SN", copy=False, index=True)
+    product_id = fields.Many2one("product.product", "Product", index=True)
     value = fields.Float("In Value", digits=dp.get_precision("Product Price"), copy=False,)
     value_residual = fields.Float("Residual Value", digits=dp.get_precision("Product Price"), copy=False,)
     value_min = fields.Float("Min Value", digits=dp.get_precision("Product Price"))
     company_id = fields.Many2one("res.company", "Company", required=True,
-        default=lambda self: self.env["res.company"]._company_default_get("res.asset"))
+        default=lambda self: self.env["res.company"]._company_default_get("res.asset"), index=True)
     currency_id = fields.Many2one("res.currency", "Currency", related="company_id.currency_id", readonly=True)
     supplier_id = fields.Many2one("res.partner", "Supplier", domain=[("supplier", "=", True)])
     manufacturer_id = fields.Many2one("res.partner", "Manufacturer")
     note = fields.Text("Notes", copy=False,)
-    category_id = fields.Many2one("asset.category", "Categories", required=True)
+    category_id = fields.Many2one("asset.category", "Categories", required=True, index=True)
     date = fields.Datetime("Date", copy=False, default=fields.Datetime.now)
-    state = fields.Selection([("draft", "Draft"), ("open", "Open"), ("close", "Close")], string="Status", readonly=True)
-    active = fields.Boolean("Active", default=True, copy=False)
+    state = fields.Selection([("draft", "Draft"), ("open", "Open"), ("close", "Close")], string="Status", readonly=True, index=True)
+    active = fields.Boolean("Active", default=True, copy=False, index=True)
     owner_employee_id = fields.Many2one("hr.employee", "Own Employee")
     owner_department_id = fields.Many2one("hr.department", "Own Department")
-    employee_id = fields.Many2one("hr.employee", "Employee")
-    department_id = fields.Many2one("hr.department", "Department")
+    employee_id = fields.Many2one("hr.employee", "Employee", index=True)
+    department_id = fields.Many2one("hr.department", "Department", index=True)
     warehouse_id = fields.Many2one("stock.warehouse", "Warehouse")
     location_id = fields.Many2one("stock.location", "Location")
     depreciation_line_ids = fields.One2many("asset.depreciation.line", "asset_id", string="Depreciation Lines")
@@ -39,12 +39,18 @@ class ResAsset(models.Model):
     @api.model
     def create(self, values):
         category_id = values.get("category_id", 0)
+        product_id = values.get("product_id", 0)
         ir_seq_code = "res.asset"
-        if category_id:
+        if not ir_seq_code and product_id:
+            product_id = self.env["product.product"].browse(product_id)
+            if product_id and product_id.sequence_line_id and product_id.sequence_line_id.code:
+                ir_seq_code = product_id.sequence_line_id.code
+        if not ir_seq_code and category_id:
             category_id = self.env["asset.category"].browse(category_id)
             if category_id and category_id.sequence_line_id and category_id.sequence_line_id.code:
                 ir_seq_code = category_id.sequence_line_id.code
-
+        if not ir_seq_code:
+            ir_seq_code = "res.asset"
         values["code"] = self.env["ir.sequence"].next_by_code(ir_seq_code) or "New"
         return super(ResAsset, self).create(values)
 
