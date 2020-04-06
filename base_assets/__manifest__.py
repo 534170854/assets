@@ -17,6 +17,7 @@
         "data/ir_sequence_data.xml",
         "data/department_data.xml",
 
+        "views/res_config_settings_view.xml",
         "views/res_users_view.xml",
         "views/res_company_view.xml",
         "views/asset_category_view.xml",
@@ -24,6 +25,7 @@
         "views/menu.xml",
         "views/product_template_view.xml",
         "views/purchase_order_view.xml",
+        "views/asset_apply_order_view.xml",
         "views/stock_picking_view.xml",
         "views/asset_picking_order_view.xml",
         "views/asset_move_line_view.xml",

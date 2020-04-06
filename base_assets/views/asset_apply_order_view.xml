@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="asset_apply_order_form_view" model="ir.ui.view">
+        <field name="name">asset.apply.order Form</field>
+        <field name="model">asset.apply.order</field>
+        <field name="arch" type="xml">
+            <form string="Asset Apply">
+                <header>
+                    <button name="action_comfirm" string="Comfirm" states="draft" type="object" class="btn-primary"/>
+                    <button name="action_done" string="Audit" states="confirm" type="object" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <label for="name"/>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="apply_user_id"/>
+                        <field name="apply_employee_id" force_save="True"/>
+                        <field name="employee_id"/>
+                        <field name="department_id" force_save="True"/>
+                        <field name="date"/>
+                        <field name="note"/>
+                    </group>
+                    <notebook>
+                        <page string="Apply Detail">
+                            <group>
+                                <field name="line_ids">
+                                    <tree editable="bottom">
+                                        <field name="product_id" context="{'select_asset': True}"/>
+                                        <field name="quantity"/>
+                                        <field name="note"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="asset_apply_order_tree_view" model="ir.ui.view">
+        <field name="name">asset.apply.order Tree</field>
+        <field name="model">asset.apply.order</field>
+        <field name="arch" type="xml">
+            <tree string="Asset Apply">
+                <field name="name"/>
+                <field name="apply_user_id"/>
+                <field name="apply_employee_id"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="asset_apply_order_search" model="ir.ui.view">
+        <field name="name">asset.apply.order Filter</field>
+        <field name="model">asset.apply.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <group expand="0" string="Group By...">
+                    <filter name="group_by_department_id" string="Department" context="{'group_by':'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="asset_apply_order_action" model="ir.actions.act_window">
+        <field name="name">asset.apply.order</field>
+        <field name="res_model">asset.apply.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new record.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_asset_apply" name="Apply" sequence="20" parent="menu_asset_root"/>
+    <menuitem action="asset_apply_order_action" id="menu_asset_apply_order" name="All Apply"
+              parent="menu_asset_apply" sequence="10"/>
+
+</odoo>

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from . import ResConfigSettings
 from . import ResUsers
 from . import ResCompany
 from . import AssetCategory
 from . import ProductTemplate
 from . import ResAsset
 from . import PurchaseOrder
+from . import AssetApply
 from . import AssetPicking
 from . import StockPicking
 from . import AssetMoveLine
