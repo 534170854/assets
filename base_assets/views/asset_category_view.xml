@@ -9,21 +9,22 @@
                 <header>
                 </header>
                 <sheet>
-                <div class="oe_title">
-                    <h1>
-                        <field name="name"/>
-                    </h1>
-                </div>
-                <group>
-                    <field name="code"/>
-                    <field name="parent_id"/>
-                    <field name="asset_account_id"/>
-                    <field name="asset_depreciation_account_id"/>
-                    <field name="asset_expense_account_id"/>
-                    <field name="journal_id"/>
-                    <field name="company_id" groups="base.group_multi_company"/>
-                    <field name="active"/>
-                </group>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="code"/>
+                        <field name="parent_id"/>
+                        <field name="auto_confirm"/>
+                        <field name="asset_account_id"/>
+                        <field name="asset_depreciation_account_id"/>
+                        <field name="asset_expense_account_id"/>
+                        <field name="journal_id"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="active"/>
+                    </group>
                 </sheet>
             </form>
         </field>
@@ -34,7 +35,7 @@
         <field name="model">asset.category</field>
         <field name="arch" type="xml">
             <tree string="Asset Category">
-                <field name="complete_name" />
+                <field name="complete_name"/>
                 <field name="asset_account_id"/>
                 <field name="asset_depreciation_account_id"/>
                 <field name="asset_expense_account_id"/>
@@ -74,6 +75,6 @@
     <menuitem id="menu_asset_root" name="Asset" sequence="80" web_icon="base_assets,static/description/icon.png"/>
     <menuitem id="menu_asset_base" name="Base" sequence="10" parent="menu_asset_root"/>
     <menuitem action="asset_category_action" id="menu_asset_category" name="Asset Category"
-        parent="menu_asset_base" sequence="10" />
+              parent="menu_asset_base" sequence="10"/>
 
 </odoo>
