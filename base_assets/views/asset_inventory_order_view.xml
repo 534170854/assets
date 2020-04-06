@@ -134,7 +134,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_asset_inventory" name="Inventory" sequence="30" parent="menu_asset_root"/>
+    <menuitem id="menu_asset_inventory" name="Inventory" sequence="40" parent="menu_asset_root"/>
     <menuitem action="asset_inventory_order_action" id="menu_asset_inventory_order" name="Asset Inventory"
         parent="menu_asset_inventory" sequence="10"/>
 

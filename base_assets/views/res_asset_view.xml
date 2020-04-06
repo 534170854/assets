@@ -5,7 +5,7 @@
         <field name="name">res.asset Form</field>
         <field name="model">res.asset</field>
         <field name="arch" type="xml">
-            <form string="Asset">
+            <form string="Asset" create="0" delete="0" edit="0">
                 <header>
                     <button name="action_open" string="Open" type="object" states="draft" class="btn-primary"/>
                     <field name="state" widget="statusbar"/>
@@ -67,7 +67,7 @@
         <field name="name">res.asset Tree</field>
         <field name="model">res.asset</field>
         <field name="arch" type="xml">
-            <tree string="Asset">
+            <tree string="Asset" create="0" delete="0" edit="0">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="sn"/>
