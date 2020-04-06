@@ -71,7 +71,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_asset_root" name="Asset" sequence="80" />
+    <menuitem id="menu_asset_root" name="Asset" sequence="80" web_icon="base_assets,static/description/icon.png"/>
     <menuitem id="menu_asset_base" name="Base" sequence="10" parent="menu_asset_root"/>
     <menuitem action="asset_category_action" id="menu_asset_category" name="Asset Category"
         parent="menu_asset_base" sequence="10" />
