@@ -12,8 +12,7 @@
                 <button name="action_view_oa" string="View OA" type="object"/>
             </xpath>
             <xpath expr="//field[@name='currency_id']"  position="after">
-                <field name="order_type" />
-                <!--<field nama="oa_state" />-->
+                <field name="order_type" readonly="True" force_save="1"/>
             </xpath>
         </field>
     </record>
