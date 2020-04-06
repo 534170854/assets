@@ -8,6 +8,7 @@ class ProductTemplate(models.Model):
 
     is_asset = fields.Boolean("Is Asset")
     asset_category_id = fields.Many2one("asset.category", "Asset Category")
+    sequence_line_id = fields.Many2one('ir.sequence', string='Code of Assets Sequence', copy=False)
 
     @api.model
     def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
