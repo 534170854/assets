@@ -14,6 +14,8 @@ class AssetPickingOrder(models.Model):
 
 
     name = fields.Char("Name", copy=False, readonly=True)
+    origin = fields.Char("Origin", copy=False, states={'draft': [('readonly', False)]})
+    note = fields.Char("Note", copy=False, states={'draft': [('readonly', False)]})
     apply_user_id = fields.Many2one("res.users", "Apply Users", default=lambda self: self._uid,
         readonly=True, states={'draft': [('readonly', False)]})
     apply_employee_id = fields.Many2one("hr.employee", "Apply Employee",
@@ -59,6 +61,7 @@ class AssetPickingOrder(models.Model):
         "order_id", "picking_id", String="Stock Picking", readonly=True, copy=False)
     picking_count = fields.Integer("Picking Count", compute="_get_picking_count", store=True)
     stock_move_ids = fields.One2many("stock.move", "asset_picking_order_id", String="Stock Moves", readonly=True)
+    pick_id = fields.Many2one("asset.apply.order", "Apply Order", copy=False)
 
     @api.onchange("apply_user_id")
     def _onchange_apply_user_id(self):
