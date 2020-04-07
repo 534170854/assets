@@ -13,3 +13,4 @@ from . import AssetMoveLine
 from . import AssetDepreciationLine
 from . import StockMove
 from . import AssetInventory
+from . import HR

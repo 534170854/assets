@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <form string="Asset Apply">
                 <header>
-                    <button name="action_comfirm" string="Comfirm" states="draft" type="object" class="btn-primary"/>
+                    <button name="action_confirm" string="Confirm" states="draft" type="object" class="btn-primary"/>
                     <button name="action_done" string="Audit" states="confirm" type="object" class="btn-primary"/>
                     <button name="action_cancel" string="Cancel" type="object" class="btn-primary"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>

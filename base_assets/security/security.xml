@@ -11,6 +11,7 @@
             <field name="name">Asset User</field>
             <field name="category_id" ref="module_asset"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">资产管理基础用户,可以查看责任人是自己的资产，可以申请资产.</field>
         </record>
 
         <record id="group_asset_manager" model="res.groups">
@@ -18,20 +19,23 @@
             <field name="category_id" ref="module_asset"/>
             <field name="implied_ids" eval="[(4, ref('group_asset_user'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">部门的资产管理员,可以查看本部门的资产 查看本部门的资产申请单.</field>
         </record>
 
         <record id="group_asset_boss" model="res.groups">
             <field name="name">Asset Boss</field>
             <field name="category_id" ref="module_asset"/>
-            <field name="implied_ids" eval="[(4, ref('group_asset_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('group_asset_manager'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">总部的资产管理员,可以查看本部门及下属部门的资产 查看本部门的资产申请单.</field>
         </record>
 
         <record id="group_asset_root" model="res.groups">
             <field name="name">Asset Root</field>
             <field name="category_id" ref="module_asset"/>
-            <field name="implied_ids" eval="[(4, ref('group_asset_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('group_asset_boss'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">查看所有资产 查看所有资产申请单.</field>
         </record>
 
         <record model="ir.rule" id="rule_asset_category_multi_company">
