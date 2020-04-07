@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <form string="Asset Picking">
                 <header>
-                    <button name="action_comfirm" string="Comfirm" states="draft" type="object" class="btn-primary"/>
+                    <button name="action_confirm" string="Confirm" states="draft" type="object" class="btn-primary"/>
                     <button name="action_done" string="Done" states="confirm" type="object" class="btn-primary"/>
                     <button name="action_cancel" string="cancel"
                         attrs="{'invisible': [('state', 'in', ['cancel', 'done'])]}" type="object"/>
@@ -28,7 +28,6 @@
                     <field name="apply_employee_id"/>
                     <field name="apply_department_id"/>
                     <field name="date"/>
-                    <field name="type"/>
                     <field name="picking_ids" widget="many2many_tags"/>
                     <field name="picking_count" invisible="True" />
                     <field name="company_id"/>
@@ -110,8 +109,13 @@
                                 <field name="department_id" invisible="True"/>
                                 <field name="warehouse_id" invisible="True"/>
                                 <field name="location_id" invisible="True"/>
-                                <field name="asset_id"/>
-                                <field name="product_id" invisible="True"/>
+                                <field name="asset_id"
+                                       domain="[('department_id', '=', parent.department_id),
+                                       ('employee_id', '=', parent.employee_id),
+                                       ('product_id', '=', product_id),
+                                       ('state', '=', 'open')
+                                       ]"/>
+                                <field name="product_id" force_save="True" readonly="True"/>
                                 <field name="date"/>
                                 <field name="state"/>
                             </tree>
@@ -136,7 +140,6 @@
                 <field name="apply_employee_id"/>
                 <field name="apply_department_id"/>
                 <field name="date"/>
-                <field name="type"/>
                 <field name="state"/>
                 <field name="company_id"/>
             </tree>

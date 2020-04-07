@@ -27,7 +27,8 @@ class AssetApplyOrder(models.Model):
                                  readonly=True, states={'draft': [('readonly', False)]})
     line_ids = fields.One2many("asset.apply.order.line", "order_id", String="Lines",
                                readonly=True, states={'draft': [('readonly', False)]})
-    asset_picking_order_ids = fields.One2many('asset.picking.order', "pick_id", "Asset Picking Order", copy=False)
+    asset_picking_order_ids = fields.One2many('asset.picking.order', "apply_id", "Asset Picking Order", copy=False,
+                                              readonly=True)
     note = fields.Char("Note", readonly=True, states={'draft': [('readonly', False)]})
 
     @api.onchange("apply_user_id")
@@ -66,6 +67,14 @@ class AssetApplyOrder(models.Model):
         values["name"] = self.env["ir.sequence"].next_by_code("asset.apply.order") or "New"
         return super(AssetApplyOrder, self).create(values)
 
+    @api.multi
+    def unlink(self):
+        for order in self:
+            if order.state != 'draft':
+                raise UserError(_("Only state of draft can be deleted"))
+        res = super(AssetApplyOrder, self).unlink()
+        return res
+
     def action_cancel(self):
         self.write({"state": "cancel"})
 
@@ -82,9 +91,14 @@ class AssetApplyOrder(models.Model):
                 raise UserError(_("The order named %s has been done." % (order.name)))
             val = {
                 "origin": order.name,
+                "apply_id": order.id,
                 "apply_user_id": order.apply_user_id.id,
                 "apply_employee_id": order.apply_employee_id.id,
                 "apply_department_id": order.department_id.id,
+                "dest_owner_employee_id": order.employee_id.id,
+                "dest_employee_id": order.employee_id.id,
+                "dest_owner_department_id": order.department_id.id,
+                "dest_department_id": order.employee_id.id,
                 "date": order.date,
                 "note": order.note,
             }
@@ -92,7 +106,7 @@ class AssetApplyOrder(models.Model):
             for line in order.line_ids:
                 quantity = line.quantity
                 while quantity > 0:
-                    line_ids.append({
+                    line_ids.append((0, 0, {
                         "name": "%s Apply" % (line.product_id.display_name),
                         "product_id": line.product_id.id,
                         "date": order.date,
@@ -101,7 +115,7 @@ class AssetApplyOrder(models.Model):
                         "dest_owner_department_id": order.department_id.id,
                         "dest_department_id": order.employee_id.id,
                         "note": line.note,
-                    })
+                    }))
                     quantity = quantity - 1
             if line_ids:
                 val["line_ids"] = line_ids
@@ -110,14 +124,26 @@ class AssetApplyOrder(models.Model):
             asset_picking_order_env.create(val)
         self.write({"state": "done"})
 
+    def action_view_pick(self):
+        pick_ids = self.mapped("asset_picking_order_ids").ids
+        action = self.env.ref("base_assets.asset_picking_order_action").read()[0]
+        if len(pick_ids) == 1:
+            action['res_id'] = pick_ids[0]
+            action['views'] = [(False, 'form')]
+        elif len(pick_ids) > 1:
+            action['domain'] = [("id", "in", pick_ids)]
+        else:
+            raise UserError(_("The asset apply have not pick order!"))
+        return action
+
 
 class AssetPicOrderLine(models.Model):
     _name = 'asset.apply.order.line'
 
     order_id = fields.Many2one("asset.apply.order", "Order")
     name = fields.Char("Name")
-    # employee_id = fields.Many2one("hr.employee", "Employee", related="order_id.employee_id")
-    # department_id = fields.Many2one("hr.department", "Department", related="order_id.department_id")
+    employee_id = fields.Many2one("hr.employee", "Employee", related="order_id.employee_id")
+    department_id = fields.Many2one("hr.department", "Department", related="order_id.department_id")
     product_id = fields.Many2one("product.product", "Product", required=True, domain=[("is_asset", "=", True)])
     quantity = fields.Integer("Quantity")
     note = fields.Char("Note")

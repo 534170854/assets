@@ -7,11 +7,13 @@
         <field name="arch" type="xml">
             <form string="Asset Apply">
                 <header>
-                    <button name="action_comfirm" string="Comfirm" states="draft" type="object" class="btn-primary"/>
+                    <button name="action_confirm" string="Confirm" states="draft" type="object" class="btn-primary"/>
                     <button name="action_done" string="Audit" states="confirm" type="object" class="btn-primary"/>
-                    <button name="action_cancel" string="Cancel" type="object" class="btn-primary"
+                    <button name="action_cancel" string="Cancel" type="object"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_view_pick" string="View Pick" type="object" class="btn-primary"
+                            attrs="{'invisible': [('line_ids', '=', False)]}"/>/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -40,6 +42,16 @@
                                 </field>
                             </group>
                         </page>
+                        <page string="Pick Detail">
+                            <group>
+                                <field name="asset_picking_order_ids">
+                                    <tree editable="bottom">
+                                        <field name="name" context="{'select_asset': True}"/>
+                                        <field name="state"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
                     </notebook>
 
                 </sheet>
@@ -58,6 +70,7 @@
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="date"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -68,6 +81,14 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirm" name="confirm"
+                        domain="[('state', '=', 'confirm')]"/>
+                <filter string="Cancel" name="cancel"
+                        domain="[('state', '=', 'cancel')]"/>
+                <filter string="Done" name="done"
+                        domain="[('state', '=', 'done')]"/>
                 <group expand="0" string="Group By...">
                     <filter name="group_by_department_id" string="Department" context="{'group_by':'department_id'}"/>
                 </group>
@@ -88,8 +109,40 @@
         </field>
     </record>
 
+    <record id="asset_my_apply_order_action" model="ir.actions.act_window">
+        <field name="name">asset.apply.order</field>
+        <field name="res_model">asset.apply.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[("employee_id.user_id", "=", uid)]</field>
+        <field name="context"></field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new record.
+            </p>
+        </field>
+    </record>
+
+    <record id="asset_wait_apply_order_action" model="ir.actions.act_window">
+        <field name="name">asset.apply.order</field>
+        <field name="res_model">asset.apply.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[("state", "=", "confirm"))]</field>
+        <field name="context"></field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new record.
+            </p>
+        </field>
+    </record>
+
     <menuitem id="menu_asset_apply" name="Apply" sequence="20" parent="menu_asset_root"/>
     <menuitem action="asset_apply_order_action" id="menu_asset_apply_order" name="All Apply"
               parent="menu_asset_apply" sequence="10"/>
+    <menuitem action="asset_my_apply_order_action" id="menu_my_apply_order" name="My Apply"
+              parent="menu_asset_apply" sequence="20"/>
+    <menuitem action="asset_wait_apply_order_action" id="menu_asset_wait_apply_order" name="My Audit"
+              parent="menu_asset_apply" sequence="30"/>
 
 </odoo>

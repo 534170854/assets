@@ -14,7 +14,7 @@ class AssetMoveLine(models.Model):
     name = fields.Char("Name")
     order_id = fields.Many2one("asset.picking.order", "Order")
     inventory_id = fields.Many2one("asset.inventory.order", "Inventory")
-    asset_id = fields.Many2one("res.asset", "Asset", required=True, )
+    asset_id = fields.Many2one("res.asset", "Asset",)
     product_id = fields.Many2one("product.product", "Product", required=True)
     date = fields.Datetime("Date", copy=False, readonly=True)
     owner_employee_id = fields.Many2one("hr.employee", "Own Employee")
@@ -61,6 +61,21 @@ class AssetMoveLine(models.Model):
     @api.multi
     def action_done(self):
         for line in self:
+            val = {"state": "done"}
+            if line.order_id or line.dest_owner_employee_id != line.order_id.dest_owner_employee_id:
+                val["dest_owner_employee_id"] = line.order_id.dest_owner_employee_id.id
+            if line.order_id or line.dest_owner_department_id != line.order_id.dest_owner_department_id:
+                val["dest_owner_department_id"] = line.order_id.dest_owner_department_id.id
+            if line.order_id or line.dest_employee_id != line.order_id.dest_employee_id:
+                val["dest_employee_id"] = line.order_id.dest_employee_id.id
+            if line.order_id or line.dest_department_id != line.order_id.dest_department_id:
+                val["dest_department_id"] = line.order_id.dest_department_id.id
+            if line.order_id or line.dest_warehouse_id != line.order_id.dest_warehouse_id:
+                val["dest_warehouse_id"] = line.order_id.dest_warehouse_id.id
+            if line.order_id or line.dest_location_id != line.order_id.dest_location_id:
+                val["dest_location_id"] = line.order_id.dest_location_id.id
+            line.write(val)
+        for line in self:
             val = {}
             if line.owner_employee_id and line.dest_owner_employee_id \
                     and line.owner_employee_id != line.dest_owner_employee_id:
@@ -88,7 +103,6 @@ class AssetMoveLine(models.Model):
 
             if val:
                 line.asset_id.write(val)
-            line.write({"state": "done"})
         line_open = self.filtered(lambda l:
                                   (
                                               l.owner_employee_id or l.owner_department_id or l.employee_id or l.department_id or l.location_id)
