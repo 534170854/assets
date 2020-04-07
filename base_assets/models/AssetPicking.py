@@ -24,9 +24,6 @@ class AssetPickingOrder(models.Model):
         readonly=True, states={'draft': [('readonly', False)]})
     date = fields.Datetime("Date", default=fields.Datetime.now,
         readonly=True, states={'draft': [('readonly', False)]})
-    type = fields.Selection([("own", "Own"), ("transfer", "Transfer"), ("fix", "Fix"), ("stock", "Stock")],
-        string="Picking Type", default="transfer",
-        readonly=True, states={'draft': [('readonly', False)]})
     owner_employee_id = fields.Many2one("hr.employee", "Own Employee",
         readonly=True, states={'draft': [('readonly', False)]})
     dest_owner_employee_id = fields.Many2one("hr.employee", "Dest Own Employee",
@@ -61,7 +58,7 @@ class AssetPickingOrder(models.Model):
         "order_id", "picking_id", String="Stock Picking", readonly=True, copy=False)
     picking_count = fields.Integer("Picking Count", compute="_get_picking_count", store=True)
     stock_move_ids = fields.One2many("stock.move", "asset_picking_order_id", String="Stock Moves", readonly=True)
-    pick_id = fields.Many2one("asset.apply.order", "Apply Order", copy=False)
+    apply_id = fields.Many2one("asset.apply.order", "Apply Order", copy=False)
 
     @api.onchange("apply_user_id")
     def _onchange_apply_user_id(self):
@@ -74,6 +71,16 @@ class AssetPickingOrder(models.Model):
         values["name"] = self.env["ir.sequence"].next_by_code("asset.picking.order") or "New"
         return super(AssetPickingOrder, self).create(values)
 
+    @api.multi
+    def unlink(self):
+        for pick in self:
+            if pick.state != 'draft':
+                raise UserError(_("Only state of draft can be deleted"))
+            if pick.apply_id and pick.apply_id.state == 'done':
+                raise UserError(_("It can't be deleted because of the Apply is done"))
+        res = super(AssetPickingOrder, self).unlink()
+        return res
+
     @api.depends("picking_ids")
     def _get_picking_count(self):
         for picking in self:
@@ -82,8 +89,11 @@ class AssetPickingOrder(models.Model):
     # 确认资产转移单
     # 检查是否生成拣货单(stock.picking)
     @api.multi
-    def action_comfirm(self):
+    def action_confirm(self):
         self.ensure_one()
+
+        if any(not line.asset_id.id for line in self.line_ids):
+            raise UserError(_("Asset required"))
         vals = {"state": "confirm"}
 
         if not self.picking_ids and self.location_id.id != self.dest_location_id.id:
@@ -122,7 +132,7 @@ class AssetPickingOrder(models.Model):
         if any(picking.state not in ("done", "cancel") for picking in self.picking_ids):
             raise UserError(_("You still have some stock picking to finish!"))
 
-        if all(picking.state == "cancel" for picking in self.picking_ids):
+        if self.picking_ids and all(picking.state == "cancel" for picking in self.picking_ids):
             val["state"] = "cancel"
             self.line_ids.write({"state": "cancel"})
         else:
