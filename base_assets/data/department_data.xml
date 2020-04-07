@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="dep_management_supplier" model="hr.department">
+            <field name="name">Supplier</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <record id="dep_management_customer" model="hr.department">
+            <field name="name">Customer</field>
+            <field name="active" eval="False"/>
+        </record>trans
+
+        <record id="dep_management_trans" model="hr.department">
+            <field name="name">Trans</field>
+            <field name="active" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

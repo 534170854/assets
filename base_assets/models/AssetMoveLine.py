@@ -4,7 +4,6 @@ from odoo.osv import expression
 from odoo.addons import decimal_precision as dp
 from . import AssetPicking
 
-
 status = AssetPicking.status
 
 
@@ -15,16 +14,7 @@ class AssetMoveLine(models.Model):
     name = fields.Char("Name")
     order_id = fields.Many2one("asset.picking.order", "Order")
     inventory_id = fields.Many2one("asset.inventory.order", "Inventory")
-    asset_id = fields.Many2one("res.asset", "Asset", required=True,
-        # domain="["
-        #        "'|', ('owner_employee_id', '=', owner_employee_id), ('owner_employee_id', '=', False),"
-        #        "'|', ('owner_department_id', '=', owner_department_id), ('owner_department_id', '=', False),"
-        #        "'|', ('employee_id', '=', employee_id), ('employee_id', '=', False),"
-        #        "'|', ('department_id', '=', department_id), ('department_id', '=', False),"
-        #        "'|', ('warehouse_id', '=', warehouse_id), ('warehouse_id', '=', False),"
-        #        "'|', ('location_id', '=', location_id), ('location_id', '=', False)"
-        #        "]"
-                               )
+    asset_id = fields.Many2one("res.asset", "Asset",)
     product_id = fields.Many2one("product.product", "Product", required=True)
     date = fields.Datetime("Date", copy=False, readonly=True)
     owner_employee_id = fields.Many2one("hr.employee", "Own Employee")
@@ -40,9 +30,9 @@ class AssetMoveLine(models.Model):
     location_id = fields.Many2one("stock.location", "Location")
     dest_location_id = fields.Many2one("stock.location", "Dest Location")
     state = fields.Selection(status, string="Status", store=True)
-    note = fields.Char("Note")
+    note = fields.Char("Note", states={'draft': [('readonly', False)]})
     company_id = fields.Many2one("res.company", "Company", required=True,
-        default=lambda self: self.env['res.company']._company_default_get('asset.move.line'))
+                                 default=lambda self: self.env['res.company']._company_default_get('asset.move.line'))
 
     _sql_constraints = [
         ('line_uniq_byorder', 'unique(order_id, asset_id)', 'Asset should be unique in a order!'),
@@ -60,7 +50,6 @@ class AssetMoveLine(models.Model):
         self.warehouse_id = self.asset_id.warehouse_id.id
         self.location_id = self.asset_id.location_id.id
 
-
     @api.multi
     def action_cancel(self):
         self.write({"state": "cancel"})
@@ -71,6 +60,21 @@ class AssetMoveLine(models.Model):
 
     @api.multi
     def action_done(self):
+        for line in self:
+            val = {"state": "done"}
+            if line.order_id or line.dest_owner_employee_id != line.order_id.dest_owner_employee_id:
+                val["dest_owner_employee_id"] = line.order_id.dest_owner_employee_id.id
+            if line.order_id or line.dest_owner_department_id != line.order_id.dest_owner_department_id:
+                val["dest_owner_department_id"] = line.order_id.dest_owner_department_id.id
+            if line.order_id or line.dest_employee_id != line.order_id.dest_employee_id:
+                val["dest_employee_id"] = line.order_id.dest_employee_id.id
+            if line.order_id or line.dest_department_id != line.order_id.dest_department_id:
+                val["dest_department_id"] = line.order_id.dest_department_id.id
+            if line.order_id or line.dest_warehouse_id != line.order_id.dest_warehouse_id:
+                val["dest_warehouse_id"] = line.order_id.dest_warehouse_id.id
+            if line.order_id or line.dest_location_id != line.order_id.dest_location_id:
+                val["dest_location_id"] = line.order_id.dest_location_id.id
+            line.write(val)
         for line in self:
             val = {}
             if line.owner_employee_id and line.dest_owner_employee_id \
@@ -99,18 +103,18 @@ class AssetMoveLine(models.Model):
 
             if val:
                 line.asset_id.write(val)
-            line.write({"state": "done"})
         line_open = self.filtered(lambda l:
-            (l.owner_employee_id or l.owner_department_id or l.employee_id or l.department_id or l.location_id)
-            and l.asset_id.state != 'open'
-        )
+                                  (
+                                              l.owner_employee_id or l.owner_department_id or l.employee_id or l.department_id or l.location_id)
+                                  and l.asset_id.state != 'open'
+                                  )
         if line_open:
             line_open.mapped("asset_id").action_open()
         line_close = self.filtered(lambda l:
-            not l.owner_employee_id and not l.owner_department_id and not l.employee_id \
-            and not l.department_id and not l.location_id \
-            and l.asset_id.state != 'close'
-        )
+                                   not l.owner_employee_id and not l.owner_department_id and not l.employee_id \
+                                   and not l.department_id and not l.location_id \
+                                   and l.asset_id.state != 'close'
+                                   )
         if line_close:
             line_close.mapped("asset_id").action_close()
         return True

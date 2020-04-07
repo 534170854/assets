@@ -6,11 +6,15 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="compute_user_id" string="重新计算部门" object="type" groups="base.group_system"/>
+            </xpath>
             <xpath expr="//notebook"  position="inside">
                 <page string="Employee Settings" name="employee">
                     <group>
                         <field name="employee_id"/>
                         <field name="department_id"/>
+                        <field name="department_ids"/>
                     </group>
                 </page>
             </xpath>
