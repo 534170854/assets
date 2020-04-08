@@ -30,7 +30,8 @@ class ResUsers(models.Model):
     def _set_employee(self):
         pass
 
-    # ´¥·¢ÖØĞÂ¼ÆËãÓÃ»§µÄÔ±¹¤¡¢²¿ÃÅ¡¢ËùÓĞÏÂ¼¶²¿ÃÅ
+
+    # è§¦å‘é‡æ–°è®¡ç®—ç”¨æˆ·çš„å‘˜å·¥ã€éƒ¨é—¨ã€æ‰€æœ‰ä¸‹çº§éƒ¨é—¨
     def compute_user_id(self):
         self._get_employee()
 

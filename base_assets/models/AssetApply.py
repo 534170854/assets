@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 status = [("draft", "Draft"), ("confirm", "Confirm"), ("done", "Done"), ("cancel", "Cancel")]
 
@@ -113,7 +117,7 @@ class AssetApplyOrder(models.Model):
                         "dest_owner_employee_id": order.employee_id.id,
                         "dest_employee_id": order.employee_id.id,
                         "dest_owner_department_id": order.department_id.id,
-                        "dest_department_id": order.department_id.id,
+                        "dest_department_id": order.employee_id.id,
                         "note": line.note,
                     }))
                     quantity = quantity - 1
@@ -140,10 +144,10 @@ class AssetApplyOrder(models.Model):
 class AssetPicOrderLine(models.Model):
     _name = 'asset.apply.order.line'
 
-    order_id = fields.Many2one("asset.apply.order", "Order")
+    order_id = fields.Many2one("asset.apply.order", "Order", index=True)
     name = fields.Char("Name")
-    employee_id = fields.Many2one("hr.employee", "Employee", related="order_id.employee_id")
-    department_id = fields.Many2one("hr.department", "Department", related="order_id.department_id")
-    product_id = fields.Many2one("product.product", "Product", required=True, domain=[("is_asset", "=", True)])
+    employee_id = fields.Many2one("hr.employee", "Employee", related="order_id.employee_id", store=True, index=True)
+    department_id = fields.Many2one("hr.department", "Department", related="order_id.department_id", store=True, index=True)
+    product_id = fields.Many2one("product.product", "Product", required=True, domain=[("is_asset", "=", True)], index=True)
     quantity = fields.Integer("Quantity")
     note = fields.Char("Note")

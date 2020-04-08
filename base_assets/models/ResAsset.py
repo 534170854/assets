@@ -137,11 +137,3 @@ class ResAsset(models.Model):
             asset.action_open()
         return asset
 
-    @api.model
-    def search(self, args, offset=0, limit=None, order=None, count=False):
-        return super(ResAsset, self). search(args, offset, limit, order, count)
-
-    @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
-        _logger.info(args)
-        return super(ResAsset, self)._search(args, offset, limit, order, count, access_rights_uid)
