@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import logging
+import datetime
 
+_logger = logging.getLogger(__name__)
 
 status = [("draft", "Draft"), ("confirm", "Confirm"), ("done", "Done"), ("cancel", "Cancel")]
 
@@ -12,50 +15,50 @@ class AssetPickingOrder(models.Model):
 
     _description = 'Assets Picking Order'
 
-
     name = fields.Char("Name", copy=False, readonly=True)
     origin = fields.Char("Origin", copy=False, states={'draft': [('readonly', False)]})
     note = fields.Char("Note", copy=False, states={'draft': [('readonly', False)]})
     apply_user_id = fields.Many2one("res.users", "Apply Users", default=lambda self: self._uid,
-        readonly=True, states={'draft': [('readonly', False)]})
+                                    readonly=True, states={'draft': [('readonly', False)]})
     apply_employee_id = fields.Many2one("hr.employee", "Apply Employee",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                        readonly=True, states={'draft': [('readonly', False)]})
     apply_department_id = fields.Many2one("hr.department", "Apply Department",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                          readonly=True, states={'draft': [('readonly', False)]})
     date = fields.Datetime("Date", default=fields.Datetime.now,
-        readonly=True, states={'draft': [('readonly', False)]})
+                           readonly=True, states={'draft': [('readonly', False)]})
     owner_employee_id = fields.Many2one("hr.employee", "Own Employee",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                        readonly=True, states={'draft': [('readonly', False)]})
     dest_owner_employee_id = fields.Many2one("hr.employee", "Dest Own Employee",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                             readonly=True, states={'draft': [('readonly', False)]})
     owner_department_id = fields.Many2one("hr.department", "Own Department",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                          readonly=True, states={'draft': [('readonly', False)]})
     dest_owner_department_id = fields.Many2one("hr.department", "Dest Own Department",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                               readonly=True, states={'draft': [('readonly', False)]})
     employee_id = fields.Many2one("hr.employee", "Employee",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                  readonly=True, states={'draft': [('readonly', False)]})
     dest_employee_id = fields.Many2one("hr.employee", "Dest Employee",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                       readonly=True, states={'draft': [('readonly', False)]})
     department_id = fields.Many2one("hr.department", "Department",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                    readonly=True, states={'draft': [('readonly', False)]})
     dest_department_id = fields.Many2one("hr.department", "Dest Department",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                         readonly=True, states={'draft': [('readonly', False)]})
     warehouse_id = fields.Many2one("stock.warehouse", "Warehouse",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                   readonly=True, states={'draft': [('readonly', False)]})
     dest_warehouse_id = fields.Many2one("stock.warehouse", "Dest Warehouse",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                        readonly=True, states={'draft': [('readonly', False)]})
     location_id = fields.Many2one("stock.location", "Location",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                  readonly=True, states={'draft': [('readonly', False)]})
     dest_location_id = fields.Many2one("stock.location", "Dest Location",
-        readonly=True, states={'draft': [('readonly', False)]})
+                                       readonly=True, states={'draft': [('readonly', False)]})
     state = fields.Selection(status, string="Status", readonly=True, default="draft")
     company_id = fields.Many2one("res.company", "Company", required=True,
-        default=lambda self: self.env['res.company']._company_default_get('asset.picking.order'),
-        readonly=True, states={'draft': [('readonly', False)]})
+                                 default=lambda self: self.env['res.company']._company_default_get(
+                                     'asset.picking.order'),
+                                 readonly=True, states={'draft': [('readonly', False)]})
     line_ids = fields.One2many("asset.move.line", "order_id", String="Lines",
-        readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+                               readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     picking_ids = fields.Many2many("stock.picking", "asset_order_picking_rel",
-        "order_id", "picking_id", String="Stock Picking", readonly=True, copy=False)
+                                   "order_id", "picking_id", String="Stock Picking", readonly=True, copy=False)
     picking_count = fields.Integer("Picking Count", compute="_get_picking_count", store=True)
     stock_move_ids = fields.One2many("stock.move", "asset_picking_order_id", String="Stock Moves", readonly=True)
     apply_id = fields.Many2one("asset.apply.order", "Apply Order", copy=False)
@@ -64,7 +67,6 @@ class AssetPickingOrder(models.Model):
     def _onchange_apply_user_id(self):
         self.apply_employee_id = self.apply_user_id.employee_id.id
         self.apply_department_id = self.apply_user_id.department_id.id
-
 
     @api.model
     def create(self, values):
@@ -139,12 +141,12 @@ class AssetPickingOrder(models.Model):
             val["state"] = "done"
         self.write(val)
 
-        self.line_ids.filtered(lambda l:l.state == "confirm").action_done()
+        self.line_ids.filtered(lambda l: l.state == "confirm").action_done()
         return True
 
     @api.multi
     def action_cancel(self):
-        self.line_ids.action_cancel()
+        self.mapped("line_ids").action_cancel()
         self.write({"state": "cancel"})
 
     # 查看相应的拣货单
@@ -163,3 +165,21 @@ class AssetPickingOrder(models.Model):
         elif len(pick_ids) == 1:
             result['res_id'] = pick_ids.id
         return result
+
+    # 取当前日期和最大在途天数
+    # 当前时间减去最大在途天数 在此之前为完成的单子全部取消
+    def cron_cancel_asset_pick_order(self):
+        ir_config_parameter_env = self.env['ir.config_parameter'].sudo()
+        asset_picking_order_env = self.env["asset.picking.order"]
+        max_trans_day = ir_config_parameter_env.sudo().get_param('base_assets.max_trans_day', default=False)
+        if max_trans_day:
+            max_trans_day = int(max_trans_day)
+            if max_trans_day > 0:
+                _logger.info("Auto cancel asset pick")
+                _logger.info("Max Trans Day: %s" % (max_trans_day))
+                now_date = datetime.datetime.now()
+                date = (now_date - datetime.timedelta(days=max_trans_day)).date()
+                _logger.info("Lastest Date: %s" % (date))
+                asset_picking_order_ids = asset_picking_order_env.search(
+                    [("state", "not in", ("done", "cancel")), ("date", "<", date)])
+                asset_picking_order_ids.action_cancel()

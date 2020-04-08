@@ -15,6 +15,7 @@
         "security/ir.model.access.csv",
 
         "data/ir_sequence_data.xml",
+        "data/ir_cron.xml",
         "data/department_data.xml",
 
         "views/res_config_settings_view.xml",
