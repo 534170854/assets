@@ -8,11 +8,12 @@
             <form string="Asset Apply">
                 <header>
                     <button name="action_confirm" string="Confirm" states="draft" type="object" class="btn-primary"/>
-                    <button name="action_done" string="Audit" states="confirm" type="object" class="btn-primary"/>
+                    <button name="action_done" string="Audit" states="confirm" type="object" class="btn-primary"
+                        groups="base_assets.group_audit_asset_apply"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'draft')]}" groups="base_assets.group_audit_asset_apply"/>
                     <button name="action_view_pick" string="View Pick" type="object" class="btn-primary"
-                            attrs="{'invisible': [('line_ids', '=', False)]}"/>/>
+                            attrs="{'invisible': [('line_ids', '=', False)]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
                 </header>
                 <sheet>
@@ -128,7 +129,7 @@
         <field name="res_model">asset.apply.order</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[("state", "=", "confirm"))]</field>
+        <field name="domain">[("state", "=", "confirm")]</field>
         <field name="context"></field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
@@ -143,6 +144,6 @@
     <menuitem action="asset_my_apply_order_action" id="menu_my_apply_order" name="My Apply"
               parent="menu_asset_apply" sequence="20"/>
     <menuitem action="asset_wait_apply_order_action" id="menu_asset_wait_apply_order" name="My Audit"
-              parent="menu_asset_apply" sequence="30"/>
+              parent="menu_asset_apply" sequence="30" groups="base_assets.group_audit_asset_apply"/>
 
 </odoo>

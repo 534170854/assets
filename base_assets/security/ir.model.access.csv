@@ -21,3 +21,8 @@ asset_inventory_order_user,asset.inventory.order.user,model_asset_inventory_orde
 asset_inventory_line_public,asset.inventory.line.public,model_asset_inventory_line,,1,0,0,0
 asset_inventory_line_user,asset.inventory.line.user,model_asset_inventory_line,group_asset_user,1,1,1,1
 stock_move_asset_user,stock.move.user,stock.model_stock_move,group_asset_user,1,1,1,1
+product_template_public,product.template.public,product.model_product_template,,1,0,0,0
+product_product_public,product.product.public,product.model_product_product,,1,0,0,0
+product_template_asset,product.template.asset,product.model_product_template,group_asset_root,1,1,1,1
+product_product_asset,product.product.asset,product.model_product_product,group_asset_root,1,1,1,1
+
