@@ -67,7 +67,7 @@
                             <tree string="Inventory Line" editable="bottom" delete="0">
                                 <field name="asset_id"/>
                                 <field name="category_id"/>
-                                <field name="product_id"/>
+                                <field name="product_id" context="{'select_asset': True}"/>
                                 <field name="code"/>
                                 <field name="name"/>
                                 <field name="sn"/>
