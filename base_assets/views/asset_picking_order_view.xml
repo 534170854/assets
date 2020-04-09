@@ -112,11 +112,11 @@
                                 <field name="asset_id"
                                        domain="[('department_id', '=', parent.department_id),
                                        ('employee_id', '=', parent.employee_id),
-                                       ('product_id', '=', product_id),
                                        ('state', '=', 'open')
-                                       ]"/>
+                                       ]"
+                                    context="{'domain_product_id': product_id}"/>
                                 <field name="product_id" force_save="True" readonly="True"/>
-                                <field name="date"/>
+                                <field name="date" force_save="True"/>
                                 <field name="state"/>
                             </tree>
                         </field>

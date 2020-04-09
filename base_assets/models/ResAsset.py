@@ -3,6 +3,7 @@ from odoo import api, fields, models, _
 from odoo.addons import decimal_precision as dp
 from odoo.exceptions import UserError
 import logging
+from odoo.osv import expression
 
 _logger = logging.getLogger(__name__)
 
@@ -56,6 +57,11 @@ class ResAsset(models.Model):
             ir_seq_code = "res.asset"
         values["code"] = self.env["ir.sequence"].next_by_code(ir_seq_code) or "New"
         return super(ResAsset, self).create(values)
+
+    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+        if self._context.get("domain_product_id", False):
+            args = expression.AND([args, [("product_id", "=", self._context.get("domain_product_id"))]])
+        return super(ResAsset, self)._search(args, offset, limit, order, count, access_rights_uid)
 
     @api.model
     def default_get(self, fields):
